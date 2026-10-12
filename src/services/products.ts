@@ -4,7 +4,7 @@ import type { Product } from '../types/product'
 // Cambiar a true para volver temporalmente a los datos de ejemplo.
 export const USE_MOCK_DATA = false
 // CSV publicado de la pestaña CATALOGO_WEB (gid=1933325673).
-export const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcdOQfz2wSZOuXYpChHspn9bUk0KZUXxM6MFWmkUrKMFrEkyLlKNf0Y-0HsPz1Qj6en0eeUorT0NuZ/pub?gid=1933325673&single=true&output=csv'
+export const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQl6cB_59kkPv3HFqtASx1CdLguTNtUNddlXRIZSzkeB5cYPIXt99c0B1hI1KXNrw/pub?gid=1455505840&single=true&output=csv'
 
 type Row = Record<string, string>
 
@@ -54,7 +54,9 @@ function normalize(rows: string[][]): Product[] {
 export async function getProducts(): Promise<Product[]> {
   if (USE_MOCK_DATA) return mockProducts.filter((product) => product.visible).sort((a, b) => a.order - b.order)
   if (!GOOGLE_SHEET_CSV_URL) throw new Error('Falta configurar la URL pública CSV de Google Sheets.')
-  const response = await fetch(GOOGLE_SHEET_CSV_URL)
+  const csvUrl = new URL(GOOGLE_SHEET_CSV_URL)
+  csvUrl.searchParams.set('_', String(Date.now()))
+  const response = await fetch(csvUrl, { cache: 'no-store' })
   if (!response.ok) throw new Error('No pudimos cargar el catálogo. Revisá la publicación de Google Sheets e intentá de nuevo.')
   const products = normalize(parseCsv(await response.text()))
   if (!products.length) throw new Error('No encontramos productos válidos y visibles en la pestaña CATALOGO_WEB.')
